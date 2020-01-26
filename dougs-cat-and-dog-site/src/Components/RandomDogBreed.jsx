@@ -30,7 +30,6 @@ const RandomDogBreed = () => {
 
     useEffect(() => {
         getDogBreedsHooks();
-        getDogPictureHooks(selectedBreed)
     }, [])
 
     
