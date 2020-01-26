@@ -1,102 +1,55 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
-class RandomDogBreed extends Component {
-    constructor() {
-        super();
-        this.state = {
-            url: "",
-            breeds: [],
-            selectedBreed: ""
-        }
-    }
-
-    getDogBreeds = async () => {
-        let dogBreedAPIURL = 'https://dog.ceo/api/breeds/list/all'
-        try {
-            const response = await axios.get(dogBreedAPIURL)
-            const data = response.data
-            const allBreeds = Object.keys(data.message)
-
-            this.setState({
-                breeds: allBreeds
-            })
-
-        } catch (error) {
-            console.log("Oops All Errors!", error)
-        }
-    }
-
-    populateSelect = () => {
-        const { breeds } = this.state;
-        let breedOptions = [];
-        breeds.forEach((breed) => {
-            breedOptions.push(
-                <option value={breed}>{breed}</option>
-            )
-        })
-        return breedOptions;
-    }
-
-    handleBreedChange = (event) => {
-        const newBreed = event.target.value
-        this.setState({
-          selectedBreed: newBreed
-        })
+const RandomDogBreed = () => {
     
-        this.getDogPicture(newBreed);
+    const [url, setUrl] = useState('');
+    const [breeds, setBreeds] = useState([]);
+    const [selectedBreed, setSelectedBreed] = useState('');
+    
+    let displayDog
+    if (selectedBreed !== '') {
+        displayDog = <img src={url} alt="Good Dog"></img>
     }
 
-    getDogPicture = async (newBreed) => {
-
-        let dogAPIURL =`https://dog.ceo/api/breed/${newBreed}/images/random`
-
-        try {
-            const { data } = await axios.get(dogAPIURL)
-            console.log(data)
-            this.setState({
-                url: data.message,
-            })
-
-        } catch (error) {
-            console.log('err: ', error)
-        }
-
+    const getDogBreedsHooks = async () => {
+        const response = await axios.get('https://dog.ceo/api/breeds/list/all')
+        setBreeds(Object.keys(response.data.message))
+    }
+    
+    const getDogPictureHooks = async (selectedBreed) => {
+        const response = await axios.get(`https://dog.ceo/api/breed/${selectedBreed}/images/random`)
+        setUrl(response.data.message)
+    }
+    
+    const handleBreedChangeHooks = (e) => {
+        setSelectedBreed(e.target.value)
+        console.log("handleChange selected breed", selectedBreed)
+        getDogPictureHooks(selectedBreed)
     }
 
-    handleNewDogBtn = () => {
-        this.getDogPicture()
-    }
+    useEffect(() => {
+        getDogBreedsHooks();
+        getDogPictureHooks(selectedBreed)
+    }, [])
 
-    componentDidMount() {
-        this.getDogBreeds();
-    }
+    
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.match.params.num !== this.props.match.params.num) {
-            this.getDogPictures();
-        }
-    }
+    return (
+        <div>
+            <h1>Random Dog By Breed!</h1>
+            <select onChange={handleBreedChangeHooks} value={selectedBreed}>
+                <option value="">SELECT A BREED</option>
+                {
+                    breeds.map(breed => {
+                        return <option key={breed} value={breed}>{breed}</option>
+                    })
+                }
+            </select>
+            {displayDog}
+        </div>
+    )
 
-    render() {
-        const { url, selectedBreed } = this.state;
-        let displayDog
-        if (selectedBreed !== '') {
-            displayDog = <img src={url} alt="Good Dog"></img>
-        } 
-        return (
-            <div>
-                <h1>Random Dog By Breed!</h1>
-                <select onChange={this.handleBreedChange} value={selectedBreed}>
-                    <option value="">SELECT A BREED</option>
-                    {
-                        this.populateSelect()
-                    }
-                </select>
-                {displayDog}
-            </div>
-        )
-    }
 }
 
 export default RandomDogBreed

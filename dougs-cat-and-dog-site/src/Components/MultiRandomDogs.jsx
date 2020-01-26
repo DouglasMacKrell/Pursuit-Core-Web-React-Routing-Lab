@@ -1,62 +1,38 @@
-import React, { Component } from 'react'
+import React,  { useState } from 'react'
 import axios from 'axios';
 
-class MultiRandomDogs extends Component {
-    constructor() {
-        super();
-        this.state = {
-            urls: [],
-            dogNum: 1,
-        }
+const MultiRandomDogs = () => {
+
+    const [urls, setUrls] = useState([]);
+    const [dogNum, setDogNum] = useState(1);
+
+    const handleNumChangeHooks = (e) => {
+        setDogNum(e.target.value)
     }
 
-    handleNumChange = (e) => {
-        this.setState({
-            dogNum: Number(e.target.value)
-        })
+    const handleNewDogBtnHooks = () => {
+        getDogPicturesHooks();
     }
 
-    componentDidMount() {
-        this.getDogPictures();
+    const getDogPicturesHooks = async () => {
+        const response = await axios.get(`https://dog.ceo/api/breeds/image/random/${dogNum}`)
+        setUrls(response.data.message)
     }
 
-    handleNewDogBtn = () => {
-        this.getDogPictures();
+    const dogArr = urls;
+    let dogList = []
+    for (let dogURL of dogArr) {
+        dogList.push(<img src={dogURL} alt="Good Dog"></img>)
     }
+    return (
+        <div>
+            <h1>Multiple Random Dogs!</h1>
+            <input type="number" value={dogNum} onChange={handleNumChangeHooks} min="1" max="10" />
+            <button onClick={handleNewDogBtnHooks}>GET MORE DOGS!</button>
+            {dogList}
+        </div>
+    )
 
-    getDogPictures = async () => {
-        let dogNum = this.state.dogNum
-
-        let dogAPIURL = `https://dog.ceo/api/breeds/image/random/${dogNum}`
-
-        try {
-            const { data } = await axios.get(dogAPIURL)
-            console.log(data)
-            this.setState({
-                urls: data.message,
-            })
-
-        } catch (error) {
-            console.log('err: ', error)
-        }
-
-    }
-
-    render() {
-        const dogArr = this.state.urls;
-        let dogList = []
-        for(let dogURL of dogArr) {
-            dogList.push(<img src={dogURL} alt="Good Dog"></img>)
-        }
-        return (
-            <div>
-                <h1>Multiple Random Dogs!</h1>
-                <input type="number" value={this.state.dogNum} onChange={this.handleNumChange} min="1" max="10"/>
-                <button onClick={this.handleNewDogBtn}>GET MORE DOGS!</button>
-                {dogList}
-            </div>
-        )
-    }
 }
 
 export default MultiRandomDogs
